@@ -20,20 +20,20 @@ def Clic_gauche(event):
 
 def deplacement():
     #actuellement pas de vitesse de rotation max
-    global xo, yo, angle, angle_inte, angle_exte, robot, objectif_en_cours, v_const, temps_total, r_roue, x0, y0, r, r_inte
-    pas_de_temps = 0.050 #s
+    global xo, yo, x_obj, y_obj, angle, angle_inte, angle_exte, angle_obj, robot, objectif_en_cours, v_const, temps_total, r_roue, x0, y0, r, r_inte
+    pas_de_temps = 0.10 #s
     temps_total += pas_de_temps
 
 
     #Déterminer le déplacement prévu
-    d = sqrt((x_obj-xo)**2 + (y_obj-y)**2)
+    d = sqrt((x_obj-xo)**2 + (y_obj-yo)**2)
     t = d/v_const
     if t > pas_de_temps:
         t = pas_de_temps
         d = v_const * t
     #Déterminer les vitesses du centre du robot et la vitesse angulaire en pixel/s et rad/s
     Vox = abs(x_obj-xo)/t
-    Voy = abs(y_obj-y)/t
+    Voy = abs(y_obj-yo)/t
     omega_z = abs(angle_obj%360 - angle%360)/t #attention aux modulos de nombres flottants !
     #Déterminer les vitesses forcées des trois roues en pixels/s
     Vaf = 0.5*Vox - sqrt(3)*0.5*Voy - d*omega_z
@@ -45,19 +45,18 @@ def deplacement():
     omega_c = (3*873)*Vcf/r_roue
 
     #Calcul des nouvelles coordonnées
-    x += signe(x_obj - xo) * Vox * t
-    y += signe(y_obj - yo) * Voy * t
+    xo += signe(x_obj - xo) * Vox * t
+    yo += signe(y_obj - yo) * Voy * t
     delta_angle = signe(angle_obj%360 - angle%360) * omega_z * t
     angle += delta_angle
     angle_inte += delta_angle
     angle_exte += delta_angle
 
     #Mettre à jour les coordonnées
-    #Besoin de fill ?
-    Canevas.coords(robot, r*cos(rad(angle)) + x, r*sin(rad(angle)) + y, r*cos(rad(120-angle)) + x, r*sin(rad(120-angle)) + y, r*cos(rad(120+angle)) + x, r*sin(rad(120+angle)) + y, r*cos(rad(-(120+angle))) + x, r*sin(rad(-(120+angle))) + y, r*cos(rad(-(120-angle))) + x, r*sin(rad(-(120-angle))) + y, r*cos(rad(-angle)) + x, r*sin(rad(-angle)) + y, fill="black")
-    Canevas.coords(roue_avant_gauche, r_inte*cos(rad(angle_inte)) + x, r_inte*sin(rad(angle_inte)) + y, r_inte*cos(rad(-angle_inte)) + x, r_inte*sin(rad(-angle_inte)) + y, r*cos(rad(-angle_exte)) + x, r*sin(rad(-angle_exte)) + y, r*cos(rad(angle_exte)) + x, r*sin(rad(angle_exte)) + y, fill="blue")
-    Canevas.coords(roue_arriere, r_inte*cos(rad(-(120-angle_inte))) + x, r_inte*sin(rad(-(120-angle_inte))) + y, r_inte*cos(rad(-(120+angle_inte))) + x, r_inte*sin(rad(-(120+angle_inte))) + y, r*cos(rad(-(120+angle_exte))) + x, r*sin(rad(-(120+angle_exte))) + y, r*cos(rad(-(120-angle_exte))) + x, r*sin(rad(-(120-angle_exte))) + y, fill="red")
-    Canevas.coords(roue_avant_droite, r_inte*cos(rad(120-angle_inte)) + x, r_inte*sin(rad(120-angle_inte)) + y, r_inte*cos(rad(120+angle_inte)) + x, r_inte*sin(rad(120+angle_inte)) + y, r*cos(rad(120+angle_exte)) + x, r*sin(rad(120+angle_exte)) + y, r*cos(rad(120-angle_exte)) + x, r*sin(rad(120-angle_exte)) + y, fill="blue")
+    Canevas.coords(robot, r*cos(rad(angle)) + xo, r*sin(rad(angle)) + yo, r*cos(rad(120-angle)) + xo, r*sin(rad(120-angle)) + yo, r*cos(rad(120+angle)) + xo, r*sin(rad(120+angle)) + yo, r*cos(rad(-(120+angle))) + xo, r*sin(rad(-(120+angle))) + yo, r*cos(rad(-(120-angle))) + xo, r*sin(rad(-(120-angle))) + yo, r*cos(rad(-angle)) + xo, r*sin(rad(-angle)) + yo)
+    Canevas.coords(roue_avant_gauche, r_inte*cos(rad(angle_inte)) + xo, r_inte*sin(rad(angle_inte)) + yo, r_inte*cos(rad(-angle_inte)) + xo, r_inte*sin(rad(-angle_inte)) + yo, r*cos(rad(-angle_exte)) + xo, r*sin(rad(-angle_exte)) + yo, r*cos(rad(angle_exte)) + xo, r*sin(rad(angle_exte)) + yo)
+    Canevas.coords(roue_arriere, r_inte*cos(rad(-(120-angle_inte))) + xo, r_inte*sin(rad(-(120-angle_inte))) + yo, r_inte*cos(rad(-(120+angle_inte))) + xo, r_inte*sin(rad(-(120+angle_inte))) + yo, r*cos(rad(-(120+angle_exte))) + xo, r*sin(rad(-(120+angle_exte))) + yo, r*cos(rad(-(120-angle_exte))) + xo, r*sin(rad(-(120-angle_exte))) + yo)
+    Canevas.coords(roue_avant_droite, r_inte*cos(rad(120-angle_inte)) + xo, r_inte*sin(rad(120-angle_inte)) + yo, r_inte*cos(rad(120+angle_inte)) + xo, r_inte*sin(rad(120+angle_inte)) + yo, r*cos(rad(120+angle_exte)) + xo, r*sin(rad(120+angle_exte)) + yo, r*cos(rad(120-angle_exte)) + xo, r*sin(rad(120-angle_exte)) + yo)
 
     
 
@@ -117,7 +116,7 @@ r *= 873/3000 #rayon en pixels
 r_inte *= 873/3000 #rayon en pixels
 x0, y0 = 99, 338
 robot = Canevas.create_polygon(r*cos(rad(angle)) + x0, r*sin(rad(angle)) + y0, r*cos(rad(120-angle)) + x0, r*sin(rad(120-angle)) + y0, r*cos(rad(120+angle)) + x0, r*sin(rad(120+angle)) + y0, r*cos(rad(-(120+angle))) + x0, r*sin(rad(-(120+angle))) + y0, r*cos(rad(-(120-angle))) + x0, r*sin(rad(-(120-angle))) + y0, r*cos(rad(-angle)) + x0, r*sin(rad(-angle)) + y0, fill="black")
-roue_avant_gauche = Canevas.create_polygon(r_inte*cos(rad(angle_inte)) + x0, r_inte*sin(rad(angle_inte)) + y0, r_inte*cos(rad(-angle_inte)) + x0, r_inte*sin(rad(-angle_inte)) + y0, r*cos(rad(-angle_exte)) + x0, r*sin(rad(-angle_exte)) + y0, r*cos(rad(angle_exte)) + x0, r*sin(rad(angle_exte)) + y0, fill="blue")
+roue_avant_gauche = Canevas.create_polygon(r_inte*cos(rad(angle_inte)) + x0, r_inte*sin(rad(angle_inte)) + y0, r_inte*cos(rad(-angle_inte)) + x0, r_inte*sin(rad(-angle_inte)) + y0, r*cos(rad(-angle_exte)) + x0, r*sin(rad(-angle_exte)) + y0, r*cos(rad(angle_exte)) + x0, r*sin(rad(angle_exte)) + y0, fill="green")
 roue_arriere = Canevas.create_polygon(r_inte*cos(rad(-(120-angle_inte))) + x0, r_inte*sin(rad(-(120-angle_inte))) + y0, r_inte*cos(rad(-(120+angle_inte))) + x0, r_inte*sin(rad(-(120+angle_inte))) + y0, r*cos(rad(-(120+angle_exte))) + x0, r*sin(rad(-(120+angle_exte))) + y0, r*cos(rad(-(120-angle_exte))) + x0, r*sin(rad(-(120-angle_exte))) + y0, fill="red")
 roue_avant_droite = Canevas.create_polygon(r_inte*cos(rad(120-angle_inte)) + x0, r_inte*sin(rad(120-angle_inte)) + y0, r_inte*cos(rad(120+angle_inte)) + x0, r_inte*sin(rad(120+angle_inte)) + y0, r*cos(rad(120+angle_exte)) + x0, r*sin(rad(120+angle_exte)) + y0, r*cos(rad(120-angle_exte)) + x0, r*sin(rad(120-angle_exte)) + y0, fill="blue")
 roues = [roue_avant_gauche, roue_avant_droite, roue_arriere]
