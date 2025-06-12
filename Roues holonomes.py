@@ -2,31 +2,42 @@ from tkinter import *
 from PIL import Image, ImageTk #attention à l'ordre d'import car tkinter contient aussi Image
 import numpy as np
 from math import cos, sin, sqrt, pi, asin
+import time
 
-class Objectif:
+class Deplacement:
     def __init__(self, x, y, angle):
         self.x = x
         self.y = y
-        self.angle = angle # angle 0 est la position initiale
+        self.angle = angle # angle 0 est l'orientation initiale du robot
+
+class Action:
+    def __init__(self, duree):
+        self.duree = duree #durée nécessaire pour accomplir l'action
+        #Temp pour créer la stratégie :
+        self.duree = 0.1
 
 def rad(degre):
     return pi*degre/180
 
 def signe(a):
-    return a/abs(a)
+    if a < 0:
+        return -1
+    else:
+        return 1
 
 def Clic_gauche(event):
     print(event.x, event.y)
 
 def deplacement():
     #actuellement pas de vitesse de rotation max
-    global xo, yo, x_obj, y_obj, angle, angle_inte, angle_exte, angle_obj, robot, objectif_en_cours, v_const, temps_total, r_roue, x0, y0, r, r_inte
-    pas_de_temps = 0.1 #s
+    global xo, yo, x_obj, y_obj, angle, angle_robot, angle_inte, angle_exte, angle_obj, robot, objectif_en_cours, v_const, temps_total, r_roue, x0, y0, r, r_inte
+    pas_de_temps = 0.05 #s
     temps_total += pas_de_temps
+    temps.set(str(round(temps_total,1)) + ' s')
 
 
     #Déterminer le déplacement prévu
-    d = sqrt((x_obj-xo)**2 + (y_obj-yo)**2) #distance en pixels entre la position actuelle et la position de l'objectif en cours
+    d = max(sqrt((x_obj-xo)**2 + (y_obj-yo)**2), 0.0001) #distance en pixels entre la position actuelle et la position de l'objectif en cours
     dt = d
     t = d/v_const #temps en s qu'on mettrait pour y aller à cette vitesse constante
     if t > pas_de_temps:#si cela prend plus de temps que le pas de temps de l'affichage alors on va moins loin
@@ -35,7 +46,7 @@ def deplacement():
     #Déterminer les vitesses du centre du robot et la vitesse angulaire en pixel/s et degré/s
     Vox = abs(x_obj-xo)*(dt/d)/t
     Voy = abs(y_obj-yo)*(dt/d)/t
-    omega_z = abs(angle_obj%360 - angle%360)*(dt/d)/t #attention aux modulos de nombres flottants ! # Est-ce la bonne unité ?
+    omega_z = abs(angle_obj - angle)*(dt/d)/t #attention aux modulos de nombres flottants ! # Est-ce la bonne unité ?
     #Déterminer les vitesses forcées des trois roues en pixels/s
     Vaf = 0.5*Vox - sqrt(3)*0.5*Voy - dt*omega_z
     Vbf = 0.5*Vox + sqrt(3)*0.5*Voy - dt*omega_z
@@ -48,22 +59,19 @@ def deplacement():
     #Calcul des nouvelles coordonnées
     xo += signe(x_obj - xo) * Vox * t
     yo += signe(y_obj - yo) * Voy * t
-    delta_angle = signe(angle_obj%360 - angle%360) * omega_z * t # degrés
+    delta_angle = signe(angle_obj - angle) * omega_z * t # degrés
     angle += delta_angle
-    angle_inte += delta_angle
-    angle_exte += delta_angle
-    print(omega_z,delta_angle,angle,angle_inte,angle_exte)
 
     #Mettre à jour les coordonnées
-    # print("maj")
-    Canevas.coords(robot, r*cos(rad(angle)) + xo, r*sin(rad(angle)) + yo, r*cos(rad(120-angle)) + xo, r*sin(rad(120-angle)) + yo, r*cos(rad(120+angle)) + xo, r*sin(rad(120+angle)) + yo, r*cos(rad(-(120+angle))) + xo, r*sin(rad(-(120+angle))) + yo, r*cos(rad(-(120-angle))) + xo, r*sin(rad(-(120-angle))) + yo, r*cos(rad(-angle)) + xo, r*sin(rad(-angle)) + yo)
-    Canevas.coords(roue_avant_gauche, r_inte*cos(rad(angle_inte)) + xo, r_inte*sin(rad(angle_inte)) + yo, r_inte*cos(rad(-angle_inte)) + xo, r_inte*sin(rad(-angle_inte)) + yo, r*cos(rad(-angle_exte)) + xo, r*sin(rad(-angle_exte)) + yo, r*cos(rad(angle_exte)) + xo, r*sin(rad(angle_exte)) + yo)
-    Canevas.coords(roue_arriere, r_inte*cos(rad(-(120-angle_inte))) + xo, r_inte*sin(rad(-(120-angle_inte))) + yo, r_inte*cos(rad(-(120+angle_inte))) + xo, r_inte*sin(rad(-(120+angle_inte))) + yo, r*cos(rad(-(120+angle_exte))) + xo, r*sin(rad(-(120+angle_exte))) + yo, r*cos(rad(-(120-angle_exte))) + xo, r*sin(rad(-(120-angle_exte))) + yo)
-    Canevas.coords(roue_avant_droite, r_inte*cos(rad(120-angle_inte)) + xo, r_inte*sin(rad(120-angle_inte)) + yo, r_inte*cos(rad(120+angle_inte)) + xo, r_inte*sin(rad(120+angle_inte)) + yo, r*cos(rad(120+angle_exte)) + xo, r*sin(rad(120+angle_exte)) + yo, r*cos(rad(120-angle_exte)) + xo, r*sin(rad(120-angle_exte)) + yo)
+    Canevas.coords(robot, r*cos(rad(angle_robot+angle)) + xo, r*sin(rad(angle_robot+angle)) + yo, r*cos(rad(120-angle_robot+angle)) + xo, r*sin(rad(120-angle_robot+angle)) + yo, r*cos(rad(120+angle_robot+angle)) + xo, r*sin(rad(120+angle_robot+angle)) + yo, r*cos(rad(-(120+angle_robot-angle))) + xo, r*sin(rad(-(120+angle_robot-angle))) + yo, r*cos(rad(-(120-angle_robot-angle))) + xo, r*sin(rad(-(120-angle_robot-angle))) + yo, r*cos(rad(-angle_robot+angle)) + xo, r*sin(rad(-angle_robot+angle)) + yo)
+    Canevas.coords(roue_avant_gauche, r_inte*cos(rad(angle_inte+angle)) + xo, r_inte*sin(rad(angle_inte+angle)) + yo, r_inte*cos(rad(-angle_inte+angle)) + xo, r_inte*sin(rad(-angle_inte+angle)) + yo, r*cos(rad(-angle_exte+angle)) + xo, r*sin(rad(-angle_exte+angle)) + yo, r*cos(rad(angle_exte+angle)) + xo, r*sin(rad(angle_exte+angle)) + yo)
+    Canevas.coords(roue_arriere, r_inte*cos(rad(-(120-angle_inte-angle))) + xo, r_inte*sin(rad(-(120-angle_inte-angle))) + yo, r_inte*cos(rad(-(120+angle_inte-angle))) + xo, r_inte*sin(rad(-(120+angle_inte-angle))) + yo, r*cos(rad(-(120+angle_exte-angle))) + xo, r*sin(rad(-(120+angle_exte-angle))) + yo, r*cos(rad(-(120-angle_exte-angle))) + xo, r*sin(rad(-(120-angle_exte-angle))) + yo)
+    Canevas.coords(roue_avant_droite, r_inte*cos(rad(120-angle_inte+angle)) + xo, r_inte*sin(rad(120-angle_inte+angle)) + yo, r_inte*cos(rad(120+angle_inte+angle)) + xo, r_inte*sin(rad(120+angle_inte+angle)) + yo, r*cos(rad(120+angle_exte+angle)) + xo, r*sin(rad(120+angle_exte+angle)) + yo, r*cos(rad(120-angle_exte+angle)) + xo, r*sin(rad(120-angle_exte+angle)) + yo)
 
     recursif = fenetre.after(int(pas_de_temps*1000),deplacement)
     #Si on a atteint l'objectif
-    if xo == x_obj and yo == y_obj and angle%360 == angle_obj:
+    # print(xo - x_obj, yo - y_obj, angle%360 - angle_obj%360)
+    if xo == x_obj and yo == y_obj and angle%360 == angle_obj%360:
         objectif_en_cours+=1
         #Si on a terminé tous les objectifs
         if objectif_en_cours == len(objectifs):
@@ -71,10 +79,13 @@ def deplacement():
             fenetre.after_cancel(recursif)
             return "Fin de la stratégie"
         else:
-            x_obj = objectifs[objectif_en_cours].x
-            y_obj = objectifs[objectif_en_cours].y
-            angle_obj = objectifs[objectif_en_cours].angle
-    if temps_total >= 100000: #si plus de 100 secondes
+            if isinstance(objectifs[objectif_en_cours], Action):
+                time.sleep(objectifs[objectif_en_cours].duree)
+            elif isinstance(objectifs[objectif_en_cours], Deplacement):
+                x_obj = objectifs[objectif_en_cours].x
+                y_obj = objectifs[objectif_en_cours].y
+                angle_obj = objectifs[objectif_en_cours].angle
+    if temps_total >= 100: #si plus de 100 secondes
         fenetre.after_cancel(recursif)
         print("Fin au temps")
         return "Fin du temps"
@@ -88,6 +99,12 @@ fenetre.title("")
 
 Canevas=Canvas(fenetre,height=hauteur,width=largeur)
 Canevas.pack()
+
+# Bouton1 = Button(fenetre,  text = 'Quitter',  command = fenetre.destroy)
+# Bouton1.pack(side="top")
+temps=StringVar()
+Label(fenetre,textvariable=temps).pack(side="top")
+temps.set("0 s")
 
 #Plateau
 image = Image.open("C:/Users/jeanb/OneDrive/Documents/Python/Tkinter codes/Roues-holonomes/plateau de départ.png")  # Replace with your image file path
@@ -106,35 +123,31 @@ plateau = Canevas.create_image( 0, 0, image = img, anchor = "nw")
 # Construction autour de 0,0
 r = (275+64/2)/sqrt(3) #rayon en mm
 r_inte = r-26 #inte et exte font référence au diamètre des sommets des roues, avec r_exte = r
-angle = asin(32/r)*180/pi #degré
+angle_robot = asin(32/r)*180/pi #degré
 angle_exte = asin(29/r)*180/pi #degré
 angle_inte = asin(29/r_inte)*180/pi #degré
 r *= 873/3000 #rayon en pixels : 3000 mm de plateau réels correspondent ici à 873 pixels
 r_inte *= 873/3000 #rayon en pixels
 x0, y0 = 99, 338
-robot = Canevas.create_polygon(r*cos(rad(angle)) + x0, r*sin(rad(angle)) + y0, r*cos(rad(120-angle)) + x0, r*sin(rad(120-angle)) + y0, r*cos(rad(120+angle)) + x0, r*sin(rad(120+angle)) + y0, r*cos(rad(-(120+angle))) + x0, r*sin(rad(-(120+angle))) + y0, r*cos(rad(-(120-angle))) + x0, r*sin(rad(-(120-angle))) + y0, r*cos(rad(-angle)) + x0, r*sin(rad(-angle)) + y0, fill="black")
+robot = Canevas.create_polygon(r*cos(rad(angle_robot)) + x0, r*sin(rad(angle_robot)) + y0, r*cos(rad(120-angle_robot)) + x0, r*sin(rad(120-angle_robot)) + y0, r*cos(rad(120+angle_robot)) + x0, r*sin(rad(120+angle_robot)) + y0, r*cos(rad(-(120+angle_robot))) + x0, r*sin(rad(-(120+angle_robot))) + y0, r*cos(rad(-(120-angle_robot))) + x0, r*sin(rad(-(120-angle_robot))) + y0, r*cos(rad(-angle_robot)) + x0, r*sin(rad(-angle_robot)) + y0, fill="black")
 roue_avant_gauche = Canevas.create_polygon(r_inte*cos(rad(angle_inte)) + x0, r_inte*sin(rad(angle_inte)) + y0, r_inte*cos(rad(-angle_inte)) + x0, r_inte*sin(rad(-angle_inte)) + y0, r*cos(rad(-angle_exte)) + x0, r*sin(rad(-angle_exte)) + y0, r*cos(rad(angle_exte)) + x0, r*sin(rad(angle_exte)) + y0, fill="green")
 roue_arriere = Canevas.create_polygon(r_inte*cos(rad(-(120-angle_inte))) + x0, r_inte*sin(rad(-(120-angle_inte))) + y0, r_inte*cos(rad(-(120+angle_inte))) + x0, r_inte*sin(rad(-(120+angle_inte))) + y0, r*cos(rad(-(120+angle_exte))) + x0, r*sin(rad(-(120+angle_exte))) + y0, r*cos(rad(-(120-angle_exte))) + x0, r*sin(rad(-(120-angle_exte))) + y0, fill="red")
 roue_avant_droite = Canevas.create_polygon(r_inte*cos(rad(120-angle_inte)) + x0, r_inte*sin(rad(120-angle_inte)) + y0, r_inte*cos(rad(120+angle_inte)) + x0, r_inte*sin(rad(120+angle_inte)) + y0, r*cos(rad(120+angle_exte)) + x0, r*sin(rad(120+angle_exte)) + y0, r*cos(rad(120-angle_exte)) + x0, r*sin(rad(120-angle_exte)) + y0, fill="blue")
 # roues = [roue_avant_gauche, roue_avant_droite, roue_arriere]
 
 #Stratégie
-objectifs=[Objectif(249,507,60)]
+objectifs=[Deplacement(249,507,-60), Action(2), Deplacement(202,340,60)]
 
 #Paramètres
 v_const = 80 #vitesse constante du robot : 80 pixels/s
+v_const = 200 #TEMP pour créer la stratégie
 objectif_en_cours = 0 #indice de l'objectif en cours dans la liste
 x_obj = objectifs[objectif_en_cours].x
 y_obj = objectifs[objectif_en_cours].y
 angle_obj = objectifs[objectif_en_cours].angle
-xo, yo, angle = x0, y0, 0
-temps_total = 0
+xo, yo, angle = x0, y0, 0 #coordonnées du centre du robot et angle initial. 0 car la roue avant gauche (verte) est vers la droite. Sens direct=sens trigo mais en degrés
+temps_total = 0 #en s, ne doit pas dépasser 100 s
 r_roue = 0.058 #m
-
-
-
-
-
 
 Canevas.bind('<Button-1>',  Clic_gauche)
 
