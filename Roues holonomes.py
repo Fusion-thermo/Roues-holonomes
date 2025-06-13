@@ -13,7 +13,7 @@ class Deplacement:
         self.description_points = desc
         self.duree_action = duree_action #durée nécessaire pour accomplir l'action
         #TEMP pour créer la stratégie :
-        # self.duree_action = duree_action/4
+        self.duree_action = duree_action/4
 
 def rad(degre):
     return pi*degre/180
@@ -32,7 +32,7 @@ def Clic_gauche(event):
 
 def Clic_droit(event):
     global save_x, save_y
-    print("diff", event.x-save_x, event.y-save_y)
+    print("diff", event.x-save_x, event.y-save_y, sqrt((event.x-save_x)**2 + (event.y-save_y)**2))
     save_x = event.x
     save_y = event.y
 
@@ -155,15 +155,15 @@ def deplacement():
     Canevas.coords(roue_avant_gauche_gr, r_inte_gr*cos(rad(angle_inte_gr+angle_gr)) + xo_gr, r_inte_gr*sin(rad(angle_inte_gr+angle_gr)) + yo_gr, r_inte_gr*cos(rad(-angle_inte_gr+angle_gr)) + xo_gr, r_inte_gr*sin(rad(-angle_inte_gr+angle_gr)) + yo_gr, r_gr*cos(rad(-angle_exte_gr+angle_gr)) + xo_gr, r_gr*sin(rad(-angle_exte_gr+angle_gr)) + yo_gr, r_gr*cos(rad(angle_exte_gr+angle_gr)) + xo_gr, r_gr*sin(rad(angle_exte_gr+angle_gr)) + yo_gr)
     Canevas.coords(roue_arriere_gr, r_inte_gr*cos(rad(-(120-angle_inte_gr-angle_gr))) + xo_gr, r_inte_gr*sin(rad(-(120-angle_inte_gr-angle_gr))) + yo_gr, r_inte_gr*cos(rad(-(120+angle_inte_gr-angle_gr))) + xo_gr, r_inte_gr*sin(rad(-(120+angle_inte_gr-angle_gr))) + yo_gr, r_gr*cos(rad(-(120+angle_exte_gr-angle_gr))) + xo_gr, r_gr*sin(rad(-(120+angle_exte_gr-angle_gr))) + yo_gr, r_gr*cos(rad(-(120-angle_exte_gr-angle_gr))) + xo_gr, r_gr*sin(rad(-(120-angle_exte_gr-angle_gr))) + yo_gr)
     Canevas.coords(roue_avant_droite_gr, r_inte_gr*cos(rad(120-angle_inte_gr+angle_gr)) + xo_gr, r_inte_gr*sin(rad(120-angle_inte_gr+angle_gr)) + yo_gr, r_inte_gr*cos(rad(120+angle_inte_gr+angle_gr)) + xo_gr, r_inte_gr*sin(rad(120+angle_inte_gr+angle_gr)) + yo_gr, r_gr*cos(rad(120+angle_exte_gr+angle_gr)) + xo_gr, r_gr*sin(rad(120+angle_exte_gr+angle_gr)) + yo_gr, r_gr*cos(rad(120-angle_exte_gr+angle_gr)) + xo_gr, r_gr*sin(rad(120-angle_exte_gr+angle_gr)) + yo_gr)
-    Canevas.coords(texte_angle,xo_gr,yo_gr)
-    Canevas.itemconfigure(texte_angle, text=str(round(angle_gr)))
+    # Canevas.coords(texte_angle,xo_gr,yo_gr)
+    # Canevas.itemconfigure(texte_angle, text=str(round(angle_gr)))
     #Mettre à jour les coordonnées PETIT ROBOT
     Canevas.coords(robot_pr, r_pr*cos(rad(angle_robot_pr+angle_pr)) + xo_pr, r_pr*sin(rad(angle_robot_pr+angle_pr)) + yo_pr, r_pr*cos(rad(120-angle_robot_pr+angle_pr)) + xo_pr, r_pr*sin(rad(120-angle_robot_pr+angle_pr)) + yo_pr, r_pr*cos(rad(120+angle_robot_pr+angle_pr)) + xo_pr, r_pr*sin(rad(120+angle_robot_pr+angle_pr)) + yo_pr, r_pr*cos(rad(-(120+angle_robot_pr-angle_pr))) + xo_pr, r_pr*sin(rad(-(120+angle_robot_pr-angle_pr))) + yo_pr, r_pr*cos(rad(-(120-angle_robot_pr-angle_pr))) + xo_pr, r_pr*sin(rad(-(120-angle_robot_pr-angle_pr))) + yo_pr, r_pr*cos(rad(-angle_robot_pr+angle_pr)) + xo_pr, r_pr*sin(rad(-angle_robot_pr+angle_pr)) + yo_pr)
     Canevas.coords(roue_avant_gauche_pr, r_inte_pr*cos(rad(angle_inte_pr+angle_pr)) + xo_pr, r_inte_pr*sin(rad(angle_inte_pr+angle_pr)) + yo_pr, r_inte_pr*cos(rad(-angle_inte_pr+angle_pr)) + xo_pr, r_inte_pr*sin(rad(-angle_inte_pr+angle_pr)) + yo_pr, r_pr*cos(rad(-angle_exte_pr+angle_pr)) + xo_pr, r_pr*sin(rad(-angle_exte_pr+angle_pr)) + yo_pr, r_pr*cos(rad(angle_exte_pr+angle_pr)) + xo_pr, r_pr*sin(rad(angle_exte_pr+angle_pr)) + yo_pr)
     Canevas.coords(roue_arriere_pr, r_inte_pr*cos(rad(-(120-angle_inte_pr-angle_pr))) + xo_pr, r_inte_pr*sin(rad(-(120-angle_inte_pr-angle_pr))) + yo_pr, r_inte_pr*cos(rad(-(120+angle_inte_pr-angle_pr))) + xo_pr, r_inte_pr*sin(rad(-(120+angle_inte_pr-angle_pr))) + yo_pr, r_pr*cos(rad(-(120+angle_exte_pr-angle_pr))) + xo_pr, r_pr*sin(rad(-(120+angle_exte_pr-angle_pr))) + yo_pr, r_pr*cos(rad(-(120-angle_exte_pr-angle_pr))) + xo_pr, r_pr*sin(rad(-(120-angle_exte_pr-angle_pr))) + yo_pr)
     Canevas.coords(roue_avant_droite_pr, r_inte_pr*cos(rad(120-angle_inte_pr+angle_pr)) + xo_pr, r_inte_pr*sin(rad(120-angle_inte_pr+angle_pr)) + yo_pr, r_inte_pr*cos(rad(120+angle_inte_pr+angle_pr)) + xo_pr, r_inte_pr*sin(rad(120+angle_inte_pr+angle_pr)) + yo_pr, r_pr*cos(rad(120+angle_exte_pr+angle_pr)) + xo_pr, r_pr*sin(rad(120+angle_exte_pr+angle_pr)) + yo_pr, r_pr*cos(rad(120-angle_exte_pr+angle_pr)) + xo_pr, r_pr*sin(rad(120-angle_exte_pr+angle_pr)) + yo_pr)
-    Canevas.coords(texte_angle,xo_pr,yo_pr)
-    Canevas.itemconfigure(texte_angle, text=str(round(angle_pr)))
+    # Canevas.coords(texte_angle,xo_pr,yo_pr)
+    # Canevas.itemconfigure(texte_angle, text=str(round(angle_pr)))
 
     recursif = fenetre.after(int(pas_de_temps*1000),deplacement)
     #Si on a atteint l'objectif GRAND ROBOT
@@ -175,7 +175,7 @@ def deplacement():
             timeout_gr_fini=False
             if objectifs_gr[objectif_en_cours_gr].points >0:
                 points_total += objectifs_gr[objectif_en_cours_gr].points
-                texte_points.set(str(points_total)+" points.\n+"+str(objectifs_gr[objectif_en_cours_gr].points)+" : "+objectifs_gr[objectif_en_cours_gr].description_points)
+                texte_points.set(str(points_total)+" points\n+"+str(objectifs_gr[objectif_en_cours_gr].points)+" : "+objectifs_gr[objectif_en_cours_gr].description_points)
             objectif_en_cours_gr+=1
             #Si on a terminé tous les objectifs
             if objectif_en_cours_gr == len(objectifs_gr):
@@ -194,7 +194,7 @@ def deplacement():
             timeout_pr_fini=False
             if objectifs_pr[objectif_en_cours_pr].points >0:
                 points_total += objectifs_pr[objectif_en_cours_pr].points
-                texte_points.set(str(points_total)+" points.\n+"+str(objectifs_pr[objectif_en_cours_pr].points)+" : "+objectifs_pr[objectif_en_cours_pr].description_points)
+                texte_points.set(str(points_total)+" points\n+"+str(objectifs_pr[objectif_en_cours_pr].points)+" : "+objectifs_pr[objectif_en_cours_pr].description_points)
             objectif_en_cours_pr+=1
             #Si on a terminé tous les objectifs
             if objectif_en_cours_pr == len(objectifs_pr):
@@ -223,19 +223,6 @@ fenetre.title("")
 
 Canevas=Canvas(fenetre,height=hauteur,width=largeur)
 Canevas.pack()
-
-# Bouton1 = Button(fenetre,  text = 'Quitter',  command = fenetre.destroy)
-# Bouton1.pack(side="top")
-temps=StringVar()
-Label(fenetre,textvariable=temps).pack()
-temps.set("0 s")
-texte_points=StringVar()
-Label(fenetre,textvariable=texte_points).pack()
-texte_points.set("0 point")
-# texte_angle=StringVar()
-# Label(fenetre,textvariable=texte_angle_gr).pack()
-# texte_angle.set("0 degrés")
-
 
 #Plateau
 image = Image.open("C:/Users/jeanb/OneDrive/Documents/Python/Tkinter codes/Roues-holonomes/plateau de départ.png")  # Replace with yo_grur image file path
@@ -276,10 +263,10 @@ roue_avant_droite_pr = Canevas.create_polygon(r_inte_pr*cos(rad(120-angle_inte_p
 
 #Stratégie grand robot
 # objectifs=[
-objectifs_gr = [Deplacement(247,333,-60), Deplacement(205,585,75), Deplacement(157,615,75,0,5,"échantillon dans l'abri de chantier"), Deplacement(272,374,-60,11), Deplacement(231,618,75), Deplacement(194,648,75,0,5,"échantillon dans l'abri de chantier"), Deplacement(268,294,-60), Deplacement(178,557,75), Deplacement(130,587,75,0,5,"échantillon dans l'abri de chantier"), #abri de chantier
+objectifs_gr = [Deplacement(247,333,-60), Deplacement(205,585,75), Deplacement(157,615,75,0,5,"échantillon dans l'abri de chantier"), Deplacement(272,374,-60), Deplacement(231,618,75), Deplacement(194,648,75,0,5,"échantillon dans l'abri de chantier"), Deplacement(268,294,-60), Deplacement(178,557,75), Deplacement(130,587,75,0,5,"échantillon dans l'abri de chantier"), #abri de chantier
              Deplacement(270,507,-60), Deplacement(231,195,-150,points=6,desc="échantillon dans la galerie au bon emplacement"), Deplacement(284,560,-60),Deplacement(372,195,-150,points=6,desc="échantillon dans la galerie au bon emplacement"),Deplacement(283,472,-60,0),Deplacement(313,522,-60),Deplacement(300,195,-150,points=6,desc="échantillon dans la galerie au bon emplacement"), #galerie
-             Deplacement(350,528,-150,0,points=20,desc="les deux robots sont rentrés au campement ou au site de fouille")] #retour, points si les deux robots sont rentrés
-objectifs_pr = [Deplacement(367,685,30,3), Deplacement(367,695,30,0,5,"carré de fouille de notre équipe"), Deplacement(367,685,30,0), Deplacement(428,685,30), Deplacement(428,695,30,0,5,"carré de fouille de notre équipe"), Deplacement(428,685,30,0), Deplacement(312,685,30,0), Deplacement(312,695,30,0,10,"carré de fouille de notre équipe et carré rouge non retourné"), #mesurer et retourner les carrés de fouille
+             Deplacement(350,528,-150,0,points=20+34,desc="les deux robots sont rentrés au campement ou au site de fouille (20) et prédiction correcte du score (ceil(112*0.3) = 34)")] #retour, points si les deux robots sont rentrés
+objectifs_pr = [Deplacement(x0_pr+1,y0_pr,0,0,5,"non forfait + vitrine déposée + statuette déposée"), Deplacement(367,685,30,3), Deplacement(367,695,30,0,5,"carré de fouille de notre équipe"), Deplacement(367,685,30,0), Deplacement(428,685,30), Deplacement(428,695,30,0,5,"carré de fouille de notre équipe"), Deplacement(428,685,30,0), Deplacement(312,685,30,0), Deplacement(312,695,30,42,10,"carré de fouille de notre équipe et carré rouge non retourné"), #mesurer et retourner les carrés de fouille
              Deplacement(165,623,-45,points=5,desc="prend la statuette"),Deplacement(165,623,135,points=10,desc="pose la réplique"),Deplacement(131,171,270,points=20,desc="pose la statuette sur la vitrine qui s'allume"), #statuette et vitrine
              Deplacement(116,300,270,0)] #retour
 
@@ -302,19 +289,26 @@ xo_pr, yo_pr, angle_pr = x0_pr, y0_pr, 0 #coordonnées du centre du robot et ang
 perimetre_pr = 2*pi*((r_inte_pr+r_pr)/2) #pixels, périmètre du cercle formé par les roues du petit robot 
 
 #Paramètres généraux
-v_const = 80 #vitesse linéaire constante du robot : 80 pixels/s fait au pifomètre
-# v_const = 200 #TEMP pour créer la stratégie
+v_const = 61 #vitesse linéaire constante du robot : 61 pixels/s trouvés grossièrement avec la vidéo du match depuis les tribunes
+v_const = 200 #TEMP pour créer la stratégie
 temps_total = 0 #en s, ne doit pas dépasser 100 s
 r_roue = 0.058 #m
 r_roue *= 873/3 #pixels
 perimetre_roue = 2*pi*r_roue
 omega_max = (180/pi)*(2*pi*perimetre_pr/perimetre_roue)/10 # degré/s on part sur un 360° en 10s
-points_total = 2+2+1 #dépose de la statuette avant le match + dépose de la vitrine avant le amtch + non forfait
+points_total = 0
+
+temps=StringVar()
+Label(fenetre,textvariable=temps).pack()
+temps.set("0 s")
+texte_points=StringVar()
+Label(fenetre,textvariable=texte_points).pack()
+texte_points.set(f"{points_total} points")
 
 Canevas.bind('<Button-1>',  Clic_gauche)
 Canevas.bind('<Button-3>',  Clic_droit)
 save_x, save_y = 0, 0
-texte_angle = Canevas.create_text(x0_pr, y0_pr, text=str(angle_pr), fill="white")
+# texte_angle = Canevas.create_text(x0_pr, y0_pr, text=str(angle_pr), fill="white")
 
 deplacement()
 
