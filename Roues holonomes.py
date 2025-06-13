@@ -12,8 +12,8 @@ class Deplacement:
         self.points=points
         self.description_points = desc
         self.duree_action = duree_action #durée nécessaire pour accomplir l'action
-        #Temp pour créer la stratégie :
-        self.duree_action = 0.1
+        #TEMP pour créer la stratégie :
+        # self.duree_action = duree_action/4
 
 def rad(degre):
     return pi*degre/180
@@ -38,50 +38,102 @@ def Clic_droit(event):
 
 def deplacement():
     #actuellement pas de vitesse de rotation max
-    global v_const, temps_total, r_roue, points_total
-    global xo_gr, yo_gr, x_obj_gr, y_obj_gr, angle_gr, angle_robot_gr, angle_inte_gr, angle_exte_gr, angle_obj_gr, robot_gr, x0_gr, y0_gr, r_inte_gr, timeout_gr, timeout_pr, fin_strat_gr, fin_strat_pr, timeout_gr_fini, objectif_en_cours_gr
-    global xo_pr, yo_pr, x_obj_pr, y_obj_pr, angle_pr, angle_robot_pr, angle_inte_pr, angle_exte_pr, angle_obj_pr, robot_pr, x0_pr, y0_pr, r_inte_pr, timeout_pr, timeout_pr, fin_strat_pr, fin_strat_pr, timeout_pr_fini, objectif_en_cours_pr
-    pas_de_temps = 0.05 #s
+    global temps_total, points_total
+    global xo_gr, yo_gr, x_obj_gr, y_obj_gr, angle_gr, angle_robot_gr, angle_obj_gr, robot_gr, timeout_gr, fin_strat_gr, timeout_gr_fini, objectif_en_cours_gr
+    global xo_pr, yo_pr, x_obj_pr, y_obj_pr, angle_pr, angle_robot_pr, angle_obj_pr, robot_pr, timeout_pr, fin_strat_pr, timeout_pr_fini, objectif_en_cours_pr
+    pas_de_temps = 0.025 #s
     temps_total += pas_de_temps
     temps.set(str(round(temps_total)) + ' s')
-    timeout_gr = max(0,timeout_gr-pas_de_temps)
-    timeout_pr = max(0,timeout_pr-pas_de_temps)
+    timeout_gr = max(0, timeout_gr - pas_de_temps)
+    timeout_pr = max(0, timeout_pr - pas_de_temps)
 
 
     #Déterminer le déplacement prévu GRAND ROBOT
-    d_gr = max(sqrt((x_obj_gr-xo_gr)**2 + (y_obj_gr-yo_gr)**2), 0.0001) #distance en pixels entre la position actuelle et la position de l'objectif en cours
+    d_gr = sqrt((x_obj_gr-xo_gr)**2 + (y_obj_gr-yo_gr)**2) #distance en pixels entre la position actuelle et la position de l'objectif en cours
     dt_gr = d_gr
     t_gr = d_gr/v_const #temps en s qu'on mettrait pour y aller à cette vitesse constante
     if t_gr > pas_de_temps:#si cela prend plus de temps que le pas de temps de l'affichage alors on va moins loin
         t_gr = pas_de_temps #s
         dt_gr = v_const * t_gr #pixels
     #Déterminer les vitesses du centre du robot et la vitesse angulaire en pixel/s et degré/s
-    Vox_gr = abs(x_obj_gr-xo_gr)*(dt_gr/d_gr)/t_gr
-    Voy_gr = abs(y_obj_gr-yo_gr)*(dt_gr/d_gr)/t_gr
-    omega_z_gr = abs(angle_obj_gr - angle_gr)*(dt_gr/d_gr)/t_gr #attention aux modulos de nombres flottants ! # Est-ce la bonne unité ?
+    if d_gr>0:
+        Vox_gr = abs(x_obj_gr-xo_gr)*(dt_gr/d_gr)/t_gr
+        Voy_gr = abs(y_obj_gr-yo_gr)*(dt_gr/d_gr)/t_gr
+        omega_z_gr = abs(angle_obj_gr - angle_gr)*(dt_gr/d_gr)/t_gr
+        t_alpha_gr = t_gr
+        if omega_z_gr > omega_max:
+            omega_z_gr = omega_max
+            t_alpha_gr = abs(angle_obj_gr - angle_gr)*(dt_gr/d_gr)/omega_z_gr
+            if t_alpha_gr > pas_de_temps:
+                t_alpha_gr = pas_de_temps
+    elif abs(angle_obj_gr - angle_gr) > 0: #si rotation pure
+        Vox_gr = 0
+        Voy_gr = 0
+        alpha_gr = abs(angle_obj_gr - angle_gr)
+        t_alpha_gr = alpha_gr/omega_max
+        if t_alpha_gr > pas_de_temps:
+            t_alpha_gr = pas_de_temps
+            alpha_gr = omega_max*t_alpha_gr
+        omega_z_gr = alpha_gr/t_alpha_gr
+    else:
+        Vox_gr = 0
+        Voy_gr = 0
+        omega_z_gr = 0
+        t_alpha_gr = 0
     #Déterminer les vitesses forcées des trois roues en pixels/s
-    Vaf_gr = 0.5*Vox_gr - sqrt(3)*0.5*Voy_gr - dt_gr*omega_z_gr
-    Vbf_gr = 0.5*Vox_gr + sqrt(3)*0.5*Voy_gr - dt_gr*omega_z_gr
-    Vcf_gr = -Vox_gr - dt_gr*omega_z_gr
+    if d_gr > 0:
+        Vaf_gr = 0.5*Vox_gr - sqrt(3)*0.5*Voy_gr - dt_gr*omega_z_gr
+        Vbf_gr = 0.5*Vox_gr + sqrt(3)*0.5*Voy_gr - dt_gr*omega_z_gr
+        Vcf_gr = -Vox_gr - dt_gr*omega_z_gr
+    else:#si rotation pure
+        Vaf_gr = - perimetre_gr*omega_z_gr #car la vitesse max est basée sur le périmètre du grand robot
+        Vbf_gr = - perimetre_gr*omega_z_gr
+        Vcf_gr = - perimetre_gr*omega_z_gr
     #Déterminer la vitesse de rotation des moteurs des trois roues en degré/s
     omega_a_gr = (3*873)*Vaf_gr/r_roue
     omega_b_gr = (3*873)*Vbf_gr/r_roue
     omega_c_gr = (3*873)*Vcf_gr/r_roue
     #Déterminer le déplacement prévu PETIT ROBOT
-    d_pr = max(sqrt((x_obj_pr-xo_pr)**2 + (y_obj_pr-yo_pr)**2), 0.0001) #distance en pixels entre la position actuelle et la position de l'objectif en cours
+    d_pr = sqrt((x_obj_pr-xo_pr)**2 + (y_obj_pr-yo_pr)**2) #distance en pixels entre la position actuelle et la position de l'objectif en cours
     dt_pr = d_pr
     t_pr = d_pr/v_const #temps en s qu'on mettrait pour y aller à cette vitesse constante
     if t_pr > pas_de_temps:#si cela prend plus de temps que le pas de temps de l'affichage alors on va moins loin
         t_pr = pas_de_temps #s
         dt_pr = v_const * t_pr #pixels
     #Déterminer les vitesses du centre du robot et la vitesse angulaire en pixel/s et degré/s
-    Vox_pr = abs(x_obj_pr-xo_pr)*(dt_pr/d_pr)/t_pr
-    Voy_pr = abs(y_obj_pr-yo_pr)*(dt_pr/d_pr)/t_pr
-    omega_z_pr = abs(angle_obj_pr - angle_pr)*(dt_pr/d_pr)/t_pr #attention aux modulos de nombres flottants ! # Est-ce la bonne unité ?
+    if d_pr>0:
+        Vox_pr = abs(x_obj_pr-xo_pr)*(dt_pr/d_pr)/t_pr
+        Voy_pr = abs(y_obj_pr-yo_pr)*(dt_pr/d_pr)/t_pr
+        omega_z_pr = abs(angle_obj_pr - angle_pr)*(dt_pr/d_pr)/t_pr
+        t_alpha_pr = t_pr
+        if omega_z_pr > omega_max:
+            omega_z_pr = omega_max
+            t_alpha_pr = abs(angle_obj_pr - angle_pr)*(dt_pr/d_pr)/omega_z_pr
+            if t_alpha_pr > pas_de_temps:
+                t_alpha_pr = pas_de_temps
+    elif abs(angle_obj_pr - angle_pr) > 0: #si rotation pure
+        Vox_pr = 0
+        Voy_pr = 0
+        alpha_pr = abs(angle_obj_pr - angle_pr)
+        t_alpha_pr = alpha_pr/omega_max
+        if t_alpha_pr > pas_de_temps:
+            t_alpha_pr = pas_de_temps
+            alpha_pr = omega_max*t_alpha_pr
+        omega_z_pr = alpha_pr/t_alpha_pr
+    else:
+        Vox_pr = 0
+        Voy_pr = 0
+        omega_z_pr = 0
+        t_alpha_pr = 0
     #Déterminer les vitesses forcées des trois roues en pixels/s
-    Vaf_pr = 0.5*Vox_pr - sqrt(3)*0.5*Voy_pr - dt_pr*omega_z_pr
-    Vbf_pr = 0.5*Vox_pr + sqrt(3)*0.5*Voy_pr - dt_pr*omega_z_pr
-    Vcf_pr = -Vox_pr - dt_pr*omega_z_pr
+    if d_pr > 0:
+        Vaf_pr = 0.5*Vox_pr - sqrt(3)*0.5*Voy_pr - dt_pr*omega_z_pr
+        Vbf_pr = 0.5*Vox_pr + sqrt(3)*0.5*Voy_pr - dt_pr*omega_z_pr
+        Vcf_pr = -Vox_pr - dt_pr*omega_z_pr
+    else:#si rotation pure
+        Vaf_pr = - perimetre_pr*omega_z_pr #car la vitesse max est basée sur le périmètre du petit robot
+        Vbf_pr = - perimetre_pr*omega_z_pr
+        Vcf_pr = - perimetre_pr*omega_z_pr
     #Déterminer la vitesse de rotation des moteurs des trois roues en degré/s
     omega_a_pr = (3*873)*Vaf_pr/r_roue
     omega_b_pr = (3*873)*Vbf_pr/r_roue
@@ -90,12 +142,12 @@ def deplacement():
     #Calcul des nouvelles coordonnées GRAND ROBOT
     xo_gr += signe(x_obj_gr - xo_gr) * Vox_gr * t_gr
     yo_gr += signe(y_obj_gr - yo_gr) * Voy_gr * t_gr
-    delta_angle_gr = signe(angle_obj_gr - angle_gr) * omega_z_gr * t_gr # degrés
+    delta_angle_gr = signe(angle_obj_gr - angle_gr) * omega_z_gr * t_alpha_gr # degrés
     angle_gr += delta_angle_gr
     #Calcul des nouvelles coordonnées PETIT ROBOT
     xo_pr += signe(x_obj_pr - xo_pr) * Vox_pr * t_pr
     yo_pr += signe(y_obj_pr - yo_pr) * Voy_pr * t_pr
-    delta_angle_pr = signe(angle_obj_pr - angle_pr) * omega_z_pr * t_pr # degrés
+    delta_angle_pr = signe(angle_obj_pr - angle_pr) * omega_z_pr * t_alpha_pr # degrés
     angle_pr += delta_angle_pr
 
     #Mettre à jour les coordonnées GRAND ROBOT
@@ -123,7 +175,7 @@ def deplacement():
             timeout_gr_fini=False
             if objectifs_gr[objectif_en_cours_gr].points >0:
                 points_total += objectifs_gr[objectif_en_cours_gr].points
-                texte_points.set(str(points_total)+" points. +"+str(objectifs_gr[objectif_en_cours_gr].points)+" : "+objectifs_gr[objectif_en_cours_gr].description_points)
+                texte_points.set(str(points_total)+" points.\n+"+str(objectifs_gr[objectif_en_cours_gr].points)+" : "+objectifs_gr[objectif_en_cours_gr].description_points)
             objectif_en_cours_gr+=1
             #Si on a terminé tous les objectifs
             if objectif_en_cours_gr == len(objectifs_gr):
@@ -142,7 +194,7 @@ def deplacement():
             timeout_pr_fini=False
             if objectifs_pr[objectif_en_cours_pr].points >0:
                 points_total += objectifs_pr[objectif_en_cours_pr].points
-                texte_points.set(str(points_total)+" points. +"+str(objectifs_pr[objectif_en_cours_pr].points)+" : "+objectifs_pr[objectif_en_cours_pr].description_points)
+                texte_points.set(str(points_total)+" points.\n+"+str(objectifs_pr[objectif_en_cours_pr].points)+" : "+objectifs_pr[objectif_en_cours_pr].description_points)
             objectif_en_cours_pr+=1
             #Si on a terminé tous les objectifs
             if objectif_en_cours_pr == len(objectifs_pr):
@@ -224,17 +276,12 @@ roue_avant_droite_pr = Canevas.create_polygon(r_inte_pr*cos(rad(120-angle_inte_p
 
 #Stratégie grand robot
 # objectifs=[
-objectifs_gr = [Deplacement(247,333,-60), Deplacement(205,585,75), Deplacement(157,615,75,0,5,"échantillon dans l'abri de chantier"), Deplacement(272,374,-60), Deplacement(231,618,75), Deplacement(194,648,75,0,5,"échantillon dans l'abri de chantier"), Deplacement(268,294,-60), Deplacement(178,557,75), Deplacement(130,587,75,0,5,"échantillon dans l'abri de chantier"), #abri de chantier
-             Deplacement(270,507,-60), Deplacement(231,195,-150,points=6,desc="échantillon dans la vitrine au bon emplacement"), Deplacement(284,560,-60),Deplacement(372,195,-150,points=6,desc="échantillon dans la vitrine au bon emplacement"),Deplacement(283,472,-60,0),Deplacement(313,522,-60),Deplacement(300,195,-150,points=6,desc="échantillon dans la vitrine au bon emplacement"), #vitrine
-             Deplacement(116,300,-150,points=20,desc="les deux robots sont rentrés au campement ou au site de fouille")] #retour, points si les deux robots sont rentrés
-objectifs_pr = [Deplacement(200,300,-60), Deplacement(161,620,75)]
-
-#Paramètres généraux
-v_const = 80 #vitesse constante du robot : 80 pixels/s
-v_const = 200 #TEMP pour créer la stratégie
-temps_total = 0 #en s, ne doit pas dépasser 100 s
-r_roue = 0.058 #m
-points_total = 0
+objectifs_gr = [Deplacement(247,333,-60), Deplacement(205,585,75), Deplacement(157,615,75,0,5,"échantillon dans l'abri de chantier"), Deplacement(272,374,-60,11), Deplacement(231,618,75), Deplacement(194,648,75,0,5,"échantillon dans l'abri de chantier"), Deplacement(268,294,-60), Deplacement(178,557,75), Deplacement(130,587,75,0,5,"échantillon dans l'abri de chantier"), #abri de chantier
+             Deplacement(270,507,-60), Deplacement(231,195,-150,points=6,desc="échantillon dans la galerie au bon emplacement"), Deplacement(284,560,-60),Deplacement(372,195,-150,points=6,desc="échantillon dans la galerie au bon emplacement"),Deplacement(283,472,-60,0),Deplacement(313,522,-60),Deplacement(300,195,-150,points=6,desc="échantillon dans la galerie au bon emplacement"), #galerie
+             Deplacement(350,528,-150,0,points=20,desc="les deux robots sont rentrés au campement ou au site de fouille")] #retour, points si les deux robots sont rentrés
+objectifs_pr = [Deplacement(367,685,30,3), Deplacement(367,695,30,0,5,"carré de fouille de notre équipe"), Deplacement(367,685,30,0), Deplacement(428,685,30), Deplacement(428,695,30,0,5,"carré de fouille de notre équipe"), Deplacement(428,685,30,0), Deplacement(312,685,30,0), Deplacement(312,695,30,0,10,"carré de fouille de notre équipe et carré rouge non retourné"), #mesurer et retourner les carrés de fouille
+             Deplacement(165,623,-45,points=5,desc="prend la statuette"),Deplacement(165,623,135,points=10,desc="pose la réplique"),Deplacement(131,171,270,points=20,desc="pose la statuette sur la vitrine qui s'allume"), #statuette et vitrine
+             Deplacement(116,300,270,0)] #retour
 
 #Initialisation des paramètres des robots
 objectif_en_cours_gr, objectif_en_cours_pr = 0, 0 #indice de l'objectif en cours dans la liste
@@ -246,18 +293,28 @@ x_obj_gr = objectifs_gr[objectif_en_cours_gr].x
 y_obj_gr = objectifs_gr[objectif_en_cours_gr].y
 angle_obj_gr = objectifs_gr[objectif_en_cours_gr].angle
 xo_gr, yo_gr, angle_gr = x0_gr, y0_gr, 0 #coordonnées du centre du robot et angle initial. 0 car la roue avant gauche (verte) est vers la droite. Sens direct=sens trigo mais en degrés
+perimetre_gr = 2*pi*((r_inte_gr+r_gr)/2) #pixels, périmètre du cercle formé par les roues du grand robot 
 
 x_obj_pr = objectifs_pr[objectif_en_cours_pr].x
 y_obj_pr = objectifs_pr[objectif_en_cours_pr].y
 angle_obj_pr = objectifs_pr[objectif_en_cours_pr].angle
 xo_pr, yo_pr, angle_pr = x0_pr, y0_pr, 0 #coordonnées du centre du robot et angle initial. 0 car la roue avant gauche (verte) est vers la droite. Sens direct=sens trigo mais en degrés
+perimetre_pr = 2*pi*((r_inte_pr+r_pr)/2) #pixels, périmètre du cercle formé par les roues du petit robot 
+
+#Paramètres généraux
+v_const = 80 #vitesse linéaire constante du robot : 80 pixels/s fait au pifomètre
+# v_const = 200 #TEMP pour créer la stratégie
+temps_total = 0 #en s, ne doit pas dépasser 100 s
+r_roue = 0.058 #m
+r_roue *= 873/3 #pixels
+perimetre_roue = 2*pi*r_roue
+omega_max = (180/pi)*(2*pi*perimetre_pr/perimetre_roue)/10 # degré/s on part sur un 360° en 10s
+points_total = 2+2+1 #dépose de la statuette avant le match + dépose de la vitrine avant le amtch + non forfait
 
 Canevas.bind('<Button-1>',  Clic_gauche)
 Canevas.bind('<Button-3>',  Clic_droit)
 save_x, save_y = 0, 0
 texte_angle = Canevas.create_text(x0_pr, y0_pr, text=str(angle_pr), fill="white")
-
-
 
 deplacement()
 
