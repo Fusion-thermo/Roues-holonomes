@@ -13,7 +13,7 @@ class Deplacement:
         self.description_points = desc
         self.duree_action = duree_action #durée nécessaire pour accomplir l'action
         #TEMP pour créer la stratégie :
-        self.duree_action = duree_action/4
+        # self.duree_action = duree_action/4
 
 def rad(degre):
     return pi*degre/180
@@ -247,8 +247,8 @@ roue_avant_droite_gr = Canevas.create_polygon(r_inte_gr*cos(rad(120-angle_inte_g
 
 #Petit robot avec polygone, bonnes proportions par rapport au plateau
 # Construction autour de 0,0
-r_pr = (180+64/2)/sqrt(3) #rayo_grn en mm
-r_inte_pr = r_pr-26 #inte et exte font référence au diamètre des sommets des roues, avec r_exte = r
+r_pr = (180+64/2)/sqrt(3) #rayon_gr en mm
+r_inte_pr = r_pr-26 #inte et exte font référence au rayon du cercle de centre O et de rayon la distance entre le centre et le centre du segment de la longeur (58 mm de long et 26mm de large) des roues, vers l'intérieur ou l'extérieur du robot, avec r_exte = r
 angle_robot_pr = asin(32/r_pr)*180/pi #degré
 angle_exte_pr = asin(29/r_pr)*180/pi #degré
 angle_inte_pr = asin(29/r_inte_pr)*180/pi #degré
@@ -266,9 +266,9 @@ roue_avant_droite_pr = Canevas.create_polygon(r_inte_pr*cos(rad(120-angle_inte_p
 objectifs_gr = [Deplacement(247,333,-60), Deplacement(205,585,75), Deplacement(157,615,75,0,5,"échantillon dans l'abri de chantier"), Deplacement(272,374,-60), Deplacement(231,618,75), Deplacement(194,648,75,0,5,"échantillon dans l'abri de chantier"), Deplacement(268,294,-60), Deplacement(178,557,75), Deplacement(130,587,75,0,5,"échantillon dans l'abri de chantier"), #abri de chantier
              Deplacement(270,507,-60), Deplacement(231,195,-150,points=6,desc="échantillon dans la galerie au bon emplacement"), Deplacement(284,560,-60),Deplacement(372,195,-150,points=6,desc="échantillon dans la galerie au bon emplacement"),Deplacement(283,472,-60,0),Deplacement(313,522,-60),Deplacement(300,195,-150,points=6,desc="échantillon dans la galerie au bon emplacement"), #galerie
              Deplacement(350,528,-150,0,points=20+34,desc="les deux robots sont rentrés au campement ou au site de fouille (20) et prédiction correcte du score (ceil(112*0.3) = 34)")] #retour, points si les deux robots sont rentrés
-objectifs_pr = [Deplacement(x0_pr+1,y0_pr,0,0,5,"non forfait + vitrine déposée + statuette déposée"), Deplacement(367,685,30,3), Deplacement(367,695,30,0,5,"carré de fouille de notre équipe"), Deplacement(367,685,30,0), Deplacement(428,685,30), Deplacement(428,695,30,0,5,"carré de fouille de notre équipe"), Deplacement(428,685,30,0), Deplacement(312,685,30,0), Deplacement(312,695,30,42,10,"carré de fouille de notre équipe et carré rouge non retourné"), #mesurer et retourner les carrés de fouille
+objectifs_pr = [Deplacement(x0_pr+1,y0_pr,0,0,5,"non forfait + vitrine déposée + statuette déposée"), Deplacement(367,685,30,3), Deplacement(367,695,30,0,5,"carré de fouille de notre équipe"), Deplacement(367,685,30,0), Deplacement(428,685,30), Deplacement(428,695,30,0,5,"carré de fouille de notre équipe"), Deplacement(428,685,30,0), Deplacement(312,685,30,0), Deplacement(312,695,30,23,10,"carré de fouille de notre équipe et carré rouge non retourné"), #mesurer et retourner les carrés de fouille
              Deplacement(165,623,-45,points=5,desc="prend la statuette"),Deplacement(165,623,135,points=10,desc="pose la réplique"),Deplacement(131,171,270,points=20,desc="pose la statuette sur la vitrine qui s'allume"), #statuette et vitrine
-             Deplacement(116,300,270,0)] #retour
+             Deplacement(131,300,270,0)] #retour
 
 #Initialisation des paramètres des robots
 objectif_en_cours_gr, objectif_en_cours_pr = 0, 0 #indice de l'objectif en cours dans la liste
@@ -289,8 +289,8 @@ xo_pr, yo_pr, angle_pr = x0_pr, y0_pr, 0 #coordonnées du centre du robot et ang
 perimetre_pr = 2*pi*((r_inte_pr+r_pr)/2) #pixels, périmètre du cercle formé par les roues du petit robot 
 
 #Paramètres généraux
-v_const = 61 #vitesse linéaire constante du robot : 61 pixels/s trouvés grossièrement avec la vidéo du match depuis les tribunes
-v_const = 200 #TEMP pour créer la stratégie
+v_const = 72.75 #vitesse linéaire constante du robot : 25 cm/s qui avaient été retenus, trop vite et il pourrait patiner ou s'incliner en s'arrêtant
+# v_const = 200 #TEMP pour créer la stratégie
 temps_total = 0 #en s, ne doit pas dépasser 100 s
 r_roue = 0.058 #m
 r_roue *= 873/3 #pixels
@@ -303,13 +303,14 @@ Label(fenetre,textvariable=temps).pack()
 temps.set("0 s")
 texte_points=StringVar()
 Label(fenetre,textvariable=texte_points).pack()
-texte_points.set(f"{points_total} points")
+texte_points.set(f"{points_total} point")
 
 Canevas.bind('<Button-1>',  Clic_gauche)
 Canevas.bind('<Button-3>',  Clic_droit)
 save_x, save_y = 0, 0
-# texte_angle = Canevas.create_text(x0_pr, y0_pr, text=str(angle_pr), fill="white")
+# texte_angle = Canevas.create_text(x0_pr, y0_pr, text=str(angle_pr), fill="white") #Afficher la rotation d'un robot sur ce robot
 
-deplacement()
+Bouton_depart = Button(fenetre,  text = 'Départ',  command = deplacement)
+Bouton_depart.pack()
 
 fenetre.mainloop()
