@@ -41,7 +41,10 @@ def deplacement():
     global temps_total, points_total
     global xo_gr, yo_gr, x_obj_gr, y_obj_gr, angle_gr, angle_robot_gr, angle_obj_gr, robot_gr, timeout_gr, fin_strat_gr, timeout_gr_fini, objectif_en_cours_gr
     global xo_pr, yo_pr, x_obj_pr, y_obj_pr, angle_pr, angle_robot_pr, angle_obj_pr, robot_pr, timeout_pr, fin_strat_pr, timeout_pr_fini, objectif_en_cours_pr
-    pas_de_temps = 0.025 #s
+    Bouton_depart.destroy()
+    Bouton_quitter = Button(fenetre,  text = 'Quitter',  command = fenetre.destroy)
+    Bouton_quitter.pack()
+    pas_de_temps = 0.02 #s
     temps_total += pas_de_temps
     temps.set(str(round(temps_total)) + ' s')
     timeout_gr = max(0, timeout_gr - pas_de_temps)
@@ -208,11 +211,9 @@ def deplacement():
     if temps_total >= 100: #si plus de 100 secondes
         fenetre.after_cancel(recursif)
         print("Fin au temps")
-        return "Fin du temps"
     elif fin_strat_gr and fin_strat_pr:
         fenetre.after_cancel(recursif)
         print("Fin de la stratégie globale")
-        return "Fin de la stratégie"
 
 
 #Tkinter
@@ -267,8 +268,8 @@ objectifs_gr = [Deplacement(247,333,-60), Deplacement(205,585,75), Deplacement(1
              Deplacement(270,507,-60), Deplacement(231,195,-150,points=6,desc="échantillon dans la galerie au bon emplacement"), Deplacement(284,560,-60),Deplacement(372,195,-150,points=6,desc="échantillon dans la galerie au bon emplacement"),Deplacement(283,472,-60,0),Deplacement(313,522,-60),Deplacement(300,195,-150,points=6,desc="échantillon dans la galerie au bon emplacement"), #galerie
              Deplacement(350,528,-150,0,points=20+34,desc="les deux robots sont rentrés au campement ou au site de fouille (20) et prédiction correcte du score (ceil(112*0.3) = 34)")] #retour, points si les deux robots sont rentrés
 objectifs_pr = [Deplacement(x0_pr+1,y0_pr,0,0,5,"non forfait + vitrine déposée + statuette déposée"), Deplacement(367,685,30,3), Deplacement(367,695,30,0,5,"carré de fouille de notre équipe"), Deplacement(367,685,30,0), Deplacement(428,685,30), Deplacement(428,695,30,0,5,"carré de fouille de notre équipe"), Deplacement(428,685,30,0), Deplacement(312,685,30,0), Deplacement(312,695,30,23,10,"carré de fouille de notre équipe et carré rouge non retourné"), #mesurer et retourner les carrés de fouille
-             Deplacement(165,623,-45,points=5,desc="prend la statuette"),Deplacement(165,623,135,points=10,desc="pose la réplique"),Deplacement(131,171,270,points=20,desc="pose la statuette sur la vitrine qui s'allume"), #statuette et vitrine
-             Deplacement(131,300,270,0)] #retour
+             Deplacement(155,627,-45,points=5,desc="prend la statuette"),Deplacement(165,623,-45,0),Deplacement(165,623,135,points=10,desc="pose la réplique"),Deplacement(131,160,90,points=20,desc="pose la statuette sur la vitrine qui s'allume"), #statuette et vitrine
+             Deplacement(131,300,90,0)] #retour
 
 #Initialisation des paramètres des robots
 objectif_en_cours_gr, objectif_en_cours_pr = 0, 0 #indice de l'objectif en cours dans la liste
@@ -295,7 +296,9 @@ temps_total = 0 #en s, ne doit pas dépasser 100 s
 r_roue = 0.058 #m
 r_roue *= 873/3 #pixels
 perimetre_roue = 2*pi*r_roue
-omega_max = (180/pi)*(2*pi*perimetre_pr/perimetre_roue)/10 # degré/s on part sur un 360° en 10s
+# omega_max = (180/pi)*(2*pi*perimetre_pr/perimetre_roue)/10 # degré/s on part sur un 360° en 10s : par coïncidence c'est très proche (0.7 degré/s de diff) de la valeur mesurée sur la vidéo
+omega_max = 180/2.68 #degré/s mesuré sur la vidéo d'entraînement à la coupe 
+print(omega_max)
 points_total = 0
 
 temps=StringVar()
